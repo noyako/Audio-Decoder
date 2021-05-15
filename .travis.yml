@@ -1,0 +1,11 @@
+language: go
+
+go:
+  - 1.15.x
+
+before_install:
+  - go get golang.org/x/lint/golint
+
+script:
+  - script/precommit
+  - go test ./...
