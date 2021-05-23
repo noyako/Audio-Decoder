@@ -32,11 +32,11 @@ func (a *AudioPostgres) GetByToken(token string) (*model.Audio, error) {
 	return &audio, nil
 }
 
-func (a *AudioPostgres) GetByOwner(user *model.User) ([]*model.Audio, error) {
+func (a *AudioPostgres) GetAll() ([]*model.Audio, error) {
 	var audio []*model.Audio
-	a.db.Where("owner_id = ?", user.ID).Find(&audio)
+	a.db.Find(&audio)
 	if audio == nil {
-		return audio, fmt.Errorf(errAudioUserNotFound, user.ID)
+		return audio, fmt.Errorf(errAudioNotFound)
 	}
 	return audio, nil
 }
@@ -44,4 +44,8 @@ func (a *AudioPostgres) GetByOwner(user *model.User) ([]*model.Audio, error) {
 func (a *AudioPostgres) Save(audio *model.Audio) error {
 	result := a.db.Create(audio)
 	return result.Error
+}
+
+func (u *AudioPostgres) Migrate() {
+	u.db.AutoMigrate(&model.Audio{})
 }

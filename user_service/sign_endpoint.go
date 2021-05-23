@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 
@@ -28,19 +29,17 @@ func (u *UserService) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(creds.Password), bcrypt.DefaultCost)
-	if err != nil {
-		service.ProcessBadFormat(w, "Password in wrong format")
-		return
-	}
-
-	user, err := u.db.GetByCreds(creds.Name, string(hashedPassword))
+	user, err := u.db.GetByName(creds.Name)
 	if err != nil {
 		service.ProcessForbidden(w, "Cannot find user")
 		return
 	}
+	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password)) != nil {
+		service.ProcessForbidden(w, "Wrong password")
+		return
+	}
 
-	service.ProcessOk(w, user)
+	service.ProcessOk(w, ResponceToken{user.Token})
 }
 
 func (u *UserService) Register(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +57,7 @@ func (u *UserService) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = u.db.GetByCreds(creds.Name, string(hashedPassword))
+	_, err = u.db.GetByName(creds.Name)
 	if err != nil {
 		user := model.User{
 			Username: creds.Name,
@@ -67,6 +66,20 @@ func (u *UserService) Register(w http.ResponseWriter, r *http.Request) {
 		}
 		err = u.db.Save(&user)
 		if err != nil {
+			service.ProcessServerError(w, "Error")
+			return
+		}
+
+		jsonData, _ := json.Marshal(UserName{user.Username})
+		resp, err := http.Post("http://localhost:8082/new", "application/json",
+			bytes.NewBuffer(jsonData))
+
+		if err != nil {
+			service.ProcessServerError(w, "Error")
+			return
+		}
+		defer resp.Body.Close()
+		if resp.Status != "200 OK" {
 			service.ProcessServerError(w, "Error")
 			return
 		}
@@ -86,15 +99,13 @@ func (u *UserService) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(creds.Password), bcrypt.DefaultCost)
-	if err != nil {
-		service.ProcessBadFormat(w, "Password in wrong format")
-		return
-	}
-
-	user, err := u.db.GetByCreds(creds.Name, string(hashedPassword))
+	user, err := u.db.GetByName(creds.Name)
 	if err != nil {
 		service.ProcessForbidden(w, "Cannot find user")
+		return
+	}
+	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password)) != nil {
+		service.ProcessForbidden(w, "Wrong password")
 		return
 	}
 

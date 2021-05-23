@@ -14,12 +14,12 @@ type UserPostgres struct {
 	db *gorm.DB
 }
 
-func NewUserPostgres(db *sql.DB) (*AudioPostgres, error) {
+func NewUserPostgres(db *sql.DB) (*UserPostgres, error) {
 	gormDB, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: db,
 	}), &gorm.Config{})
 
-	return &AudioPostgres{
+	return &UserPostgres{
 		db: gormDB,
 	}, err
 }
@@ -33,9 +33,9 @@ func (u *UserPostgres) GetByToken(token string) (*model.User, error) {
 	return &user, nil
 }
 
-func (u *UserPostgres) GetByCreds(username, password string) (*model.User, error) {
+func (u *UserPostgres) GetByName(username string) (*model.User, error) {
 	var user model.User
-	u.db.Where("username = ? AND password = ?", username, password).First(&user)
+	u.db.Where("username = ?", username).First(&user)
 	if (reflect.DeepEqual(user, model.User{})) {
 		return &user, fmt.Errorf(errUserCredsNotFound, username)
 	}
@@ -45,4 +45,8 @@ func (u *UserPostgres) GetByCreds(username, password string) (*model.User, error
 func (u *UserPostgres) Save(user *model.User) error {
 	result := u.db.Create(user)
 	return result.Error
+}
+
+func (u *UserPostgres) Migrate() {
+	u.db.AutoMigrate(&model.User{})
 }

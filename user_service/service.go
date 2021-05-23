@@ -1,17 +1,25 @@
 package main
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/noyako/Audio-Decoder/storage"
 )
 
 type UserService struct {
-	db storage.User
+	db   storage.User
+	addr string
 }
 
-func main() {
-	// mux := http.NewServeMux()
-	// mux.HandleFunc("/person/create", personCreate)
+func (u *UserService) process() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/login", u.Login)
+	mux.HandleFunc("/register", u.Register)
+	mux.HandleFunc("/refresh", u.RefreshToken)
 
-	// err := http.ListenAndServe(":4000", mux)
-	// log.Fatal(err)
+	mux.HandleFunc("/code/all", u.GetAll)
+
+	err := http.ListenAndServe(u.addr, mux)
+	log.Fatal(err)
 }

@@ -1,8 +1,7 @@
 package model
 
-type User struct {
+type Master struct {
 	ID       uint   `gorm:"primaryKey"`
 	Username string `gorm:"unique"`
-	Password string
-	Token    string `gorm:"uniqueIndex"`
+	Database string
 }

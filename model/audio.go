@@ -4,9 +4,8 @@ import "time"
 
 type Audio struct {
 	ID         uint `gorm:"primaryKey"`
-	OwnerID    uint
 	Name       string
-	Location   string
+	URL        string
 	PostedAt   time.Time
 	FinishedAt time.Time
 	Token      string `gorm:"uniqueIndex"`
