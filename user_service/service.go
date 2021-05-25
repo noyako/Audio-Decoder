@@ -19,6 +19,8 @@ func (u *UserService) process() {
 	mux.HandleFunc("/refresh", u.RefreshToken)
 
 	mux.HandleFunc("/code/all", u.GetAll)
+	mux.HandleFunc("/code/get", u.GetOne)
+	mux.HandleFunc("/code/download", u.Load)
 
 	err := http.ListenAndServe(u.addr, mux)
 	log.Fatal(err)

@@ -7,12 +7,13 @@ import (
 	"os"
 	"time"
 
+	"github.com/noyako/Audio-Decoder/request"
 	"github.com/noyako/Audio-Decoder/service"
 	"github.com/noyako/Audio-Decoder/storage"
 )
 
 func (d *DecodeService) New(w http.ResponseWriter, r *http.Request) {
-	var req UserName
+	var req request.UserName
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		service.ProcessBadFormat(w, "Request json in wrong format")
@@ -35,7 +36,7 @@ func (d *DecodeService) New(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *DecodeService) GetAll(w http.ResponseWriter, r *http.Request) {
-	var req UserName
+	var req request.UserName
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		service.ProcessBadFormat(w, "Request json in wrong format")
@@ -60,9 +61,9 @@ func (d *DecodeService) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var statuses []Status
+	var statuses []request.AudioStatus
 	for i := range audios {
-		statuses = append(statuses, Status{
+		statuses = append(statuses, request.AudioStatus{
 			Name:  audios[i].Name,
 			Date:  audios[i].PostedAt,
 			Token: audios[i].Token,
@@ -80,7 +81,7 @@ func (d *DecodeService) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *DecodeService) GetOne(w http.ResponseWriter, r *http.Request) {
-	var req Audio
+	var req request.UserNameAudioToken
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		service.ProcessBadFormat(w, "Request json in wrong format")
@@ -104,7 +105,7 @@ func (d *DecodeService) GetOne(w http.ResponseWriter, r *http.Request) {
 		service.ProcessServerError(w, "Cannot find audio")
 		return
 	}
-	status := Status{
+	status := request.AudioStatus{
 		Name:  audio.Name,
 		Date:  audio.PostedAt,
 		Token: audio.Token,
@@ -121,7 +122,7 @@ func (d *DecodeService) GetOne(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *DecodeService) Load(w http.ResponseWriter, r *http.Request) {
-	var req Audio
+	var req request.UserNameAudioToken
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		service.ProcessBadFormat(w, "Request json in wrong format")

@@ -16,7 +16,8 @@ func (d *DecodeService) process() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/new", d.New)
 	mux.HandleFunc("/all", d.GetAll)
-	// mux.HandleFunc("/status", u.Status)
+	mux.HandleFunc("/get", d.GetOne)
+	mux.HandleFunc("/download", d.Load)
 
 	err := http.ListenAndServe(d.addr, mux)
 	log.Fatal(err)

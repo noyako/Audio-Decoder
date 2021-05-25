@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/noyako/Audio-Decoder/model"
+	"github.com/noyako/Audio-Decoder/request"
 	"github.com/noyako/Audio-Decoder/service"
 
 	"golang.org/x/crypto/bcrypt"
@@ -70,7 +71,7 @@ func (u *UserService) Register(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		jsonData, _ := json.Marshal(UserName{user.Username})
+		jsonData, _ := json.Marshal(request.UserName{Username: user.Username})
 		resp, err := http.Post("http://localhost:8082/new", "application/json",
 			bytes.NewBuffer(jsonData))
 

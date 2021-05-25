@@ -33,6 +33,10 @@ func ProcessOkString(w http.ResponseWriter, result []byte) {
 	w.Write(result)
 }
 
+func ProcessOkFile(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusOK)
+}
+
 func ProcessBadFormat(w http.ResponseWriter, msg string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusBadRequest)
