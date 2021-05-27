@@ -63,7 +63,7 @@ func (u *UserService) Register(w http.ResponseWriter, r *http.Request) {
 		user := model.User{
 			Username: creds.Name,
 			Password: string(hashedPassword),
-			Token:    generateToken(),
+			Token:    service.GenerateToken(),
 		}
 		err = u.db.Save(&user)
 		if err != nil {
@@ -110,7 +110,7 @@ func (u *UserService) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.Token = generateToken()
+	user.Token = service.GenerateToken()
 	err = u.db.Save(user)
 	if err != nil {
 		service.ProcessServerError(w, "Error")

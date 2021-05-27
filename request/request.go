@@ -6,6 +6,10 @@ type UserToken struct {
 	Token string `json:"token"`
 }
 
+type AudioToken struct {
+	Token string `json:"token"`
+}
+
 type UserName struct {
 	Username string `json:"name"`
 }
@@ -30,6 +34,23 @@ type UserTokenAudioToken struct {
 type UserNameAudioToken struct {
 	Username string `json:"name"`
 	Token    string `json:"audio"`
+}
+
+type AudioInit struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
+	Key  string `json:"key"`
+	KID  string `json:"kid,omitempty"`
+}
+
+type UserAudio struct {
+	Username  string `json:"name"`
+	AudioInit `json:"audio"`
+}
+
+type UserTokenAudio struct {
+	Token     string `json:"token"`
+	AudioInit `json:"audio"`
 }
 
 // type CodeRequest struct {

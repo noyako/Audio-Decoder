@@ -42,7 +42,7 @@ func (a *AudioPostgres) GetAll() ([]*model.Audio, error) {
 }
 
 func (a *AudioPostgres) Save(audio *model.Audio) error {
-	result := a.db.Create(audio)
+	result := a.db.Save(audio)
 	return result.Error
 }
 

@@ -1,4 +1,4 @@
-package main
+package service
 
 import (
 	"crypto/rand"
@@ -7,7 +7,7 @@ import (
 
 const tokenLength = 30
 
-func generateToken() string {
+func GenerateToken() string {
 	b := make([]byte, tokenLength)
 	if _, err := rand.Read(b); err != nil {
 		return ""

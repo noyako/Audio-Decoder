@@ -10,6 +10,7 @@ type Audio struct {
 	FinishedAt time.Time
 	Token      string `gorm:"uniqueIndex"`
 	Crypto     Crypto `gorm:"embedded"`
+	Error      bool
 }
 
 type Crypto struct {

@@ -22,6 +22,9 @@ func (u *UserService) process() {
 	mux.HandleFunc("/code/get", u.GetOne)
 	mux.HandleFunc("/code/download", u.Load)
 
+	mux.HandleFunc("/code/encode", u.Encode)
+	mux.HandleFunc("/code/decode", u.Decode)
+
 	err := http.ListenAndServe(u.addr, mux)
 	log.Fatal(err)
 }

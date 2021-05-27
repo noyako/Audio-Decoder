@@ -1,0 +1,14 @@
+ffmpeg -i http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4 -encryption_scheme cenc-aes-ctr -encryption_key 76a6c65c5ea762046bd749a2e632ccbb -encryption_kid a7e61c373e219033c21091fa607bf3b8 enc.mp4
+//fmpeg http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4 -encryption_scheme cenc-aes-ctr -encryption_key 76a6c65c5ea762046bd749a2e632ccbb -encryption_kid a7e61c373e219033c21091fa607bf3b8 enc.mp4
+ffmpeg -decryption_key 76a6c65c5ea762046bd749a2e632ccbb -i enc.mp4 origin.mp4
+
+76a6c65c5ea762046bd749a2e632ccbb
+406D60D4F2748220C44230D656514C53
+
+ffmpeg -i http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4 -encryption_scheme cenc-aes-ctr -encryption_key 2BB80D537B1DA3E38BD30361AA855686 -encryption_kid BDE0EACD7162FEF6A25FE97BF527A25B enc.mp4
+
+ffmpeg -decryption_key 2BB80D537B1DA3E38BD30361AA855686 -i enc.mp4 origin.mp4
+
+ffmpeg -i https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3 -encryption_scheme aes-ctr -encryption_key 2BB80D537B1DA3E38BD30361AA855686 -encryption_kid BDE0EACD7162FEF6A25FE97BF527A25B enc.cpt
+
+ffmpeg -decryption_key 2BB80D537B1DA3E38BD30361AA855686 -i enc.mp4 origin.mp4

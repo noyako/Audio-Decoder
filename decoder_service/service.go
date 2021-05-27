@@ -19,6 +19,9 @@ func (d *DecodeService) process() {
 	mux.HandleFunc("/get", d.GetOne)
 	mux.HandleFunc("/download", d.Load)
 
+	mux.HandleFunc("/encode", d.Encode)
+	mux.HandleFunc("/decode", d.Decode)
+
 	err := http.ListenAndServe(d.addr, mux)
 	log.Fatal(err)
 }
