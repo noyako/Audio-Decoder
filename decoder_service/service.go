@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/noyako/swolf"
 )
 
@@ -13,15 +14,19 @@ type DecodeService struct {
 }
 
 func (d *DecodeService) process() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/new", d.New)
-	mux.HandleFunc("/all", d.GetAll)
-	mux.HandleFunc("/get", d.GetOne)
-	mux.HandleFunc("/download", d.Load)
+	mux := mux.NewRouter()
 
-	mux.HandleFunc("/encode", d.Encode)
-	mux.HandleFunc("/decode", d.Decode)
+	mux.HandleFunc("/new", d.New).Methods("POST")
+	mux.HandleFunc("/all", d.GetAll).Methods("GET")
+	mux.HandleFunc("/get", d.GetOne).Methods("GET")
+	mux.HandleFunc("/download", d.Load).Methods("GET")
 
-	err := http.ListenAndServe(d.addr, mux)
-	log.Fatal(err)
+	mux.HandleFunc("/encode", d.Encode).Methods("POST")
+	mux.HandleFunc("/decode", d.Decode).Methods("POST")
+
+	server := http.Server{
+		Handler: mux,
+		Addr:    "127.0.0.1:8082",
+	}
+	log.Fatal(server.ListenAndServe())
 }

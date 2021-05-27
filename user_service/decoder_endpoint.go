@@ -25,8 +25,9 @@ func (u *UserService) GetAll(w http.ResponseWriter, r *http.Request) {
 		service.ProcessServerError(w, "User not exists")
 	} else {
 		jsonData, _ := json.Marshal(request.UserName{user.Username})
-		resp, err := http.Post("http://localhost:8082/all", "application/json",
-			bytes.NewBuffer(jsonData))
+		req, err := http.NewRequest("GET", "http://localhost:8082/all", bytes.NewBuffer(jsonData))
+		req.Header.Set("content-type", "application/json")
+		resp, err := http.DefaultClient.Do(req)
 
 		if err != nil {
 			service.ProcessServerError(w, "Error")
@@ -57,8 +58,11 @@ func (u *UserService) GetOne(w http.ResponseWriter, r *http.Request) {
 		service.ProcessServerError(w, "User not exists")
 	} else {
 		jsonData, _ := json.Marshal(request.UserNameAudioToken{user.Username, token.Audio})
-		resp, err := http.Post("http://localhost:8082/get", "application/json",
-			bytes.NewBuffer(jsonData))
+		// resp, err := http.Post("http://localhost:8082/get", "application/json",
+		// 	bytes.NewBuffer(jsonData))
+		req, err := http.NewRequest("GET", "http://localhost:8082/get", bytes.NewBuffer(jsonData))
+		req.Header.Set("content-type", "application/json")
+		resp, err := http.DefaultClient.Do(req)
 
 		if err != nil {
 			service.ProcessServerError(w, "Error")
@@ -89,8 +93,11 @@ func (u *UserService) Load(w http.ResponseWriter, r *http.Request) {
 		service.ProcessServerError(w, "User not exists")
 	} else {
 		jsonData, _ := json.Marshal(request.UserNameAudioToken{user.Username, token.Audio})
-		resp, err := http.Post("http://localhost:8082/download", "application/json",
-			bytes.NewBuffer(jsonData))
+		// resp, err := http.Post("http://localhost:8082/download", "application/json",
+		// 	bytes.NewBuffer(jsonData))
+		req, err := http.NewRequest("GET", "http://localhost:8082/download", bytes.NewBuffer(jsonData))
+		req.Header.Set("content-type", "application/json")
+		resp, err := http.DefaultClient.Do(req)
 
 		if err != nil {
 			service.ProcessServerError(w, "Error")
