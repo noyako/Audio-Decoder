@@ -1,0 +1,47 @@
+user:
+  database:
+    host: "postgres"
+    user: "postgres"
+    dbname: "user"
+    password: "admin"
+    port: "8080"
+  service:
+    url: "user"
+    port: "8081"
+
+decoder:
+  database:
+    host: "postgres"
+    user: "postgres"
+    password: "admin"
+    port: "8080"
+    master: "master"
+  service:
+    url: "decoder"
+    port: "8082"
+
+storage:
+  directory: "/files"
+  source: "/home/aoyako/tfiles"
+
+converter:
+  image: "jrottenberg/ffmpeg"
+
+endpoints:
+  user:
+    all: "/code/all"
+    one: "/code/get"
+    load: "/code/download"
+    encrypt: "/code/encode"
+    decrypt: "/code/decode"
+    login: "/login"
+    register: "/register"
+    refresh: "/refresh"
+    new: "/new"
+  decoder:
+    all: "/all"
+    one: "/get"
+    load: "/download"
+    encrypt: "/encode"
+    decrypt: "/decode"
+    new: "/new"
