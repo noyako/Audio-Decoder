@@ -216,13 +216,15 @@ func (d *DecodeService) Encode(w http.ResponseWriter, r *http.Request) {
 	as.Save(audio)
 
 	path, _ := filepath.Abs(getBaseDir(req.Username))
+	os.MkdirAll(path, 0777)
 	go func(a storage.Audio, lAudio *model.Audio, path string) {
-		rCh, eCh, _ := startFfmpegEncrypt(req.AudioInit.URL, lAudio.Token+encryptExtension, req.AudioInit.Key, req.AudioInit.KID, path)
+		rCh, eCh, data := startFfmpegEncrypt(req.AudioInit.URL, lAudio.Token+encryptExtension, req.AudioInit.Key, req.AudioInit.KID, path, getBaseSourceDir(req.Username))
 		select {
 		case res := <-rCh:
 			if res.StatusCode != 0 {
 				lAudio.Error = true
 				as.Save(lAudio)
+				io.Copy(os.Stdout, data)
 				return
 			}
 			lAudio.Name = lAudio.Token + encryptExtension
@@ -277,8 +279,9 @@ func (d *DecodeService) Decode(w http.ResponseWriter, r *http.Request) {
 	as.Save(audio)
 
 	path, _ := filepath.Abs(getBaseDir(req.Username))
+	os.MkdirAll(path, 0777)
 	go func(a storage.Audio, lAudio *model.Audio, path string) {
-		rCh, eCh, _ := startFfmpegDecrypt(req.AudioInit.URL, lAudio.Token+audioExtension, req.AudioInit.Key, path)
+		rCh, eCh, _ := startFfmpegDecrypt(req.AudioInit.URL, lAudio.Token+audioExtension, req.AudioInit.Key, path, getBaseSourceDir(req.Username))
 		select {
 		case res := <-rCh:
 			if res.StatusCode != 0 {

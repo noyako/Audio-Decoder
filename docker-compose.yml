@@ -1,0 +1,30 @@
+version: '2'
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: postgres/Dockerfile
+    environment:
+      - POSTGRES_PASSWORD=admin
+    command:
+      - '-p 8080'
+    ports:
+      - '8080:8080'
+    expose:
+      - '8080'
+  user:
+    ports:
+      - '8081:8081'
+    build:
+      context: .
+      dockerfile: user_service/Dockerfile
+  decoder:
+    privileged: true
+    ports:
+      - '8082:8082'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/aoyako/tfiles:/files:z
+    build:
+      context: .
+      dockerfile: decoder_service/Dockerfile

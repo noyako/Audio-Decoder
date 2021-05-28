@@ -1,27 +1,31 @@
 user:
   database:
-    host: "localhost"
+    host: "postgres"
     user: "postgres"
     dbname: "user"
     password: "admin"
-    port: "5432"
+    port: "8080"
   service:
-    url: "localhost"
+    url: "user"
     port: "8081"
 
 decoder:
   database:
-    host: "localhost"
+    host: "postgres"
     user: "postgres"
     password: "admin"
-    port: "5432"
+    port: "8080"
     master: "master"
   service:
-    url: "localhost"
+    url: "decoder"
     port: "8082"
 
 storage:
-  directory: "files"
+  directory: "/files"
+  source: "/home/aoyako/tfiles"
+
+converter:
+  image: "jrottenberg/ffmpeg"
 
 endpoints:
   user:

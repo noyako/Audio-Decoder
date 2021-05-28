@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/noyako/Audio-Decoder/request"
@@ -38,11 +39,13 @@ func (u *UserService) GetAll(w http.ResponseWriter, r *http.Request) {
 		resp, err := http.DefaultClient.Do(req)
 
 		if err != nil {
+			log.Println(err)
 			service.ProcessServerError(w, generalError)
 			return
 		}
 		defer resp.Body.Close()
 		if resp.Status != okResponse {
+			log.Println(err)
 			service.ProcessServerError(w, generalError)
 			return
 		}
@@ -72,11 +75,13 @@ func (u *UserService) GetOne(w http.ResponseWriter, r *http.Request) {
 		resp, err := http.DefaultClient.Do(req)
 
 		if err != nil {
+			log.Println(err)
 			service.ProcessServerError(w, generalError)
 			return
 		}
 		defer resp.Body.Close()
 		if resp.Status != okResponse {
+			log.Println(err)
 			service.ProcessServerError(w, generalError)
 			return
 		}
@@ -106,11 +111,13 @@ func (u *UserService) Load(w http.ResponseWriter, r *http.Request) {
 		resp, err := http.DefaultClient.Do(req)
 
 		if err != nil {
+			log.Println(err)
 			service.ProcessServerError(w, generalError)
 			return
 		}
 		defer resp.Body.Close()
 		if resp.Status != okResponse {
+			log.Println(err)
 			service.ProcessServerError(w, generalError)
 			return
 		}
@@ -152,11 +159,13 @@ func (u *UserService) Encode(w http.ResponseWriter, r *http.Request) {
 			bytes.NewBuffer(jsonData))
 
 		if err != nil {
+			log.Println(err)
 			service.ProcessServerError(w, generalError)
 			return
 		}
 		defer resp.Body.Close()
 		if resp.Status != okResponse {
+			log.Println(err)
 			service.ProcessServerError(w, generalError)
 			return
 		}
@@ -194,11 +203,13 @@ func (u *UserService) Decode(w http.ResponseWriter, r *http.Request) {
 			bytes.NewBuffer(jsonData))
 
 		if err != nil {
+			log.Println(err)
 			service.ProcessServerError(w, generalError)
 			return
 		}
 		defer resp.Body.Close()
 		if resp.Status != okResponse {
+			log.Println(err)
 			service.ProcessServerError(w, generalError)
 			return
 		}

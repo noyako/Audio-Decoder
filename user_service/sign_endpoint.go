@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/noyako/Audio-Decoder/model"
@@ -66,6 +67,7 @@ func (u *UserService) Register(w http.ResponseWriter, r *http.Request) {
 		}
 		err = u.db.Save(&user)
 		if err != nil {
+			log.Println(err)
 			service.ProcessServerError(w, generalError)
 			return
 		}
@@ -75,11 +77,13 @@ func (u *UserService) Register(w http.ResponseWriter, r *http.Request) {
 			bytes.NewBuffer(jsonData))
 
 		if err != nil {
+			log.Println(err)
 			service.ProcessServerError(w, generalError)
 			return
 		}
 		defer resp.Body.Close()
 		if resp.Status != okResponse {
+			log.Println(resp)
 			service.ProcessServerError(w, generalError)
 			return
 		}
@@ -113,6 +117,7 @@ func (u *UserService) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	user.Token = service.GenerateToken()
 	err = u.db.Save(user)
 	if err != nil {
+		log.Println(err)
 		service.ProcessServerError(w, generalError)
 		return
 	}

@@ -3,7 +3,9 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"path"
+	"time"
 
 	_ "github.com/lib/pq"
 	"github.com/noyako/Audio-Decoder/model"
@@ -47,6 +49,11 @@ func startService() *DecodeService {
 
 	gormDB.AutoMigrate(&model.Master{})
 
+	os.MkdirAll(viper.GetString("storage.directory"), 0777)
+
+	time.Sleep(3 * time.Second)
+	ffmpegTest()
+
 	return &DecodeService{
 		adb:  dealer,
 		addr: fmt.Sprintf("%s:%s", viper.GetString("decoder.service.addr"), viper.GetString("decoder.service.port")),
@@ -59,4 +66,8 @@ func getLocation(username, file string) string {
 
 func getBaseDir(username string) string {
 	return path.Join(viper.GetString("storage.directory"), username)
+}
+
+func getBaseSourceDir(username string) string {
+	return path.Join(viper.GetString("storage.source"), username)
 }
