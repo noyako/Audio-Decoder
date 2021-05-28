@@ -6,8 +6,10 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/noyako/swolf"
+	"github.com/spf13/viper"
 )
 
+// DecodeService represents service to work with audio
 type DecodeService struct {
 	adb  *swolf.Dealer
 	addr string
@@ -16,17 +18,17 @@ type DecodeService struct {
 func (d *DecodeService) process() {
 	mux := mux.NewRouter()
 
-	mux.HandleFunc("/new", d.New).Methods("POST")
-	mux.HandleFunc("/all", d.GetAll).Methods("GET")
-	mux.HandleFunc("/get", d.GetOne).Methods("GET")
-	mux.HandleFunc("/download", d.Load).Methods("GET")
+	mux.HandleFunc(viper.GetString("endpoints.decoder.new"), d.New).Methods("POST")
+	mux.HandleFunc(viper.GetString("endpoints.decoder.all"), d.GetAll).Methods("GET")
+	mux.HandleFunc(viper.GetString("endpoints.decoder.one"), d.GetOne).Methods("GET")
+	mux.HandleFunc(viper.GetString("endpoints.decoder.load"), d.Load).Methods("GET")
 
-	mux.HandleFunc("/encode", d.Encode).Methods("POST")
-	mux.HandleFunc("/decode", d.Decode).Methods("POST")
+	mux.HandleFunc(viper.GetString("endpoints.decoder.encrypt"), d.Encode).Methods("POST")
+	mux.HandleFunc(viper.GetString("endpoints.decoder.decrypt"), d.Decode).Methods("POST")
 
 	server := http.Server{
 		Handler: mux,
-		Addr:    "127.0.0.1:8082",
+		Addr:    d.addr,
 	}
 	log.Fatal(server.ListenAndServe())
 }

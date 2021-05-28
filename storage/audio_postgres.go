@@ -9,10 +9,12 @@ import (
 	"gorm.io/gorm"
 )
 
+// AudioPostgres audio for postgres database
 type AudioPostgres struct {
 	db *gorm.DB
 }
 
+// NewAudioPostgres AudioPostgres constructor
 func NewAudioPostgres(db *sql.DB) (*AudioPostgres, error) {
 	gormDB, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: db,
@@ -23,6 +25,7 @@ func NewAudioPostgres(db *sql.DB) (*AudioPostgres, error) {
 	}, err
 }
 
+// GetByToken returns audio by its token
 func (a *AudioPostgres) GetByToken(token string) (*model.Audio, error) {
 	var audio model.Audio
 	a.db.Where("token = ?", token).First(&audio)
@@ -32,6 +35,7 @@ func (a *AudioPostgres) GetByToken(token string) (*model.Audio, error) {
 	return &audio, nil
 }
 
+// GetAll returns all audios
 func (a *AudioPostgres) GetAll() ([]*model.Audio, error) {
 	var audio []*model.Audio
 	a.db.Find(&audio)
@@ -41,11 +45,13 @@ func (a *AudioPostgres) GetAll() ([]*model.Audio, error) {
 	return audio, nil
 }
 
+// Save audio
 func (a *AudioPostgres) Save(audio *model.Audio) error {
 	result := a.db.Save(audio)
 	return result.Error
 }
 
-func (u *AudioPostgres) Migrate() {
-	u.db.AutoMigrate(&model.Audio{})
+// Migrate database tables
+func (a *AudioPostgres) Migrate() {
+	a.db.AutoMigrate(&model.Audio{})
 }

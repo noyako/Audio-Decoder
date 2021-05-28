@@ -6,8 +6,10 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/noyako/Audio-Decoder/storage"
+	"github.com/spf13/viper"
 )
 
+// UserService represents a service to work with users
 type UserService struct {
 	db   storage.User
 	addr string
@@ -15,20 +17,20 @@ type UserService struct {
 
 func (u *UserService) process() {
 	mux := mux.NewRouter()
-	mux.HandleFunc("/login", u.Login).Methods("POST")
-	mux.HandleFunc("/register", u.Register).Methods("POST")
-	mux.HandleFunc("/refresh", u.RefreshToken).Methods("POST")
+	mux.HandleFunc(viper.GetString("endpoints.user.login"), u.Login).Methods("POST")
+	mux.HandleFunc(viper.GetString("endpoints.user.register"), u.Register).Methods("POST")
+	mux.HandleFunc(viper.GetString("endpoints.user.refresh"), u.RefreshToken).Methods("POST")
 
-	mux.HandleFunc("/code/all", u.GetAll).Methods("GET")
-	mux.HandleFunc("/code/get", u.GetOne).Methods("GET")
-	mux.HandleFunc("/code/download", u.Load).Methods("GET")
+	mux.HandleFunc(viper.GetString("endpoints.user.all"), u.GetAll).Methods("GET")
+	mux.HandleFunc(viper.GetString("endpoints.user.one"), u.GetOne).Methods("GET")
+	mux.HandleFunc(viper.GetString("endpoints.user.load"), u.Load).Methods("GET")
 
-	mux.HandleFunc("/code/encode", u.Encode).Methods("POST")
-	mux.HandleFunc("/code/decode", u.Decode).Methods("POST")
+	mux.HandleFunc(viper.GetString("endpoints.user.encrypt"), u.Encode).Methods("POST")
+	mux.HandleFunc(viper.GetString("endpoints.user.decrypt"), u.Decode).Methods("POST")
 
 	server := http.Server{
 		Handler: mux,
-		Addr:    "127.0.0.1:8081",
+		Addr:    u.addr,
 	}
 	log.Fatal(server.ListenAndServe())
 }

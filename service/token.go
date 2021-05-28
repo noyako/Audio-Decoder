@@ -7,6 +7,7 @@ import (
 
 const tokenLength = 30
 
+// GenerateToken generates random string
 func GenerateToken() string {
 	b := make([]byte, tokenLength)
 	if _, err := rand.Read(b); err != nil {

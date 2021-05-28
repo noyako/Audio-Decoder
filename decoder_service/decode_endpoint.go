@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/noyako/Audio-Decoder/model"
@@ -14,56 +14,66 @@ import (
 	"github.com/noyako/Audio-Decoder/storage"
 )
 
+const (
+	statusDone    = "done"
+	statusProcess = "processing"
+	statusError   = "error"
+
+	encryptExtension = ".crypt"
+	audioExtension   = ".mp3"
+)
+
+// New creates new tenant
 func (d *DecodeService) New(w http.ResponseWriter, r *http.Request) {
 	var req request.UserName
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		service.ProcessBadFormat(w, "Request json in wrong format")
+		service.ProcessBadFormat(w, service.ErrWrongFormat)
 		return
 	}
 
 	db, err := d.adb.Create(req.Username)
 	if err != nil {
-		service.ProcessServerError(w, "Cannot create user")
+		service.ProcessServerError(w, service.ErrCreateUser)
 		return
 	}
 
 	as, err := storage.NewAudioPostgres(db)
 	if err != nil {
-		service.ProcessServerError(w, "Cannot create user")
+		service.ProcessServerError(w, service.ErrCreateUser)
 		return
 	}
 
 	as.Migrate()
 
-	// path, _ := os.Getwd()
-	os.MkdirAll(path.Join("files", req.Username), 0777)
+	os.MkdirAll(getBaseDir(req.Username), 0777)
 }
 
+// GetAll returns all published audios for tenant
 func (d *DecodeService) GetAll(w http.ResponseWriter, r *http.Request) {
 	var req request.UserName
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		service.ProcessBadFormat(w, "Request json in wrong format")
+		service.ProcessBadFormat(w, service.ErrWrongFormat)
 		return
 	}
 
 	db, err := d.adb.Get(req.Username)
 	if err != nil {
-		service.ProcessServerError(w, "Cannot get user")
+		service.ProcessServerError(w, service.ErrFindUser)
 		return
 	}
 
 	as, err := storage.NewAudioPostgres(db)
 	if err != nil {
-		service.ProcessServerError(w, "Cannot get user")
+		service.ProcessServerError(w, service.ErrFindUser)
 		return
 	}
 	as.Migrate()
 
 	audios, err := as.GetAll()
 	if err != nil {
-		service.ProcessServerError(w, "Cannot get user audios")
+		service.ProcessServerError(w, service.ErrFindUserAudio)
 		return
 	}
 
@@ -76,40 +86,41 @@ func (d *DecodeService) GetAll(w http.ResponseWriter, r *http.Request) {
 		})
 
 		if audios[i].Error {
-			statuses[i].Status = "error"
+			statuses[i].Status = statusError
 		} else if audios[i].FinishedAt.Unix() <= 0 {
-			statuses[i].Status = "processing"
+			statuses[i].Status = statusProcess
 		} else {
-			statuses[i].Status = "done"
+			statuses[i].Status = statusDone
 		}
 	}
 
 	service.ProcessOk(w, statuses)
 }
 
+// GetOne returns information about one audio
 func (d *DecodeService) GetOne(w http.ResponseWriter, r *http.Request) {
 	var req request.UserNameAudioToken
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		service.ProcessBadFormat(w, "Request json in wrong format")
+		service.ProcessBadFormat(w, service.ErrWrongFormat)
 		return
 	}
 
 	db, err := d.adb.Get(req.Username)
 	if err != nil {
-		service.ProcessServerError(w, "Cannot get user")
+		service.ProcessServerError(w, service.ErrFindUser)
 		return
 	}
 
 	as, err := storage.NewAudioPostgres(db)
 	if err != nil {
-		service.ProcessServerError(w, "Cannot get user")
+		service.ProcessServerError(w, service.ErrFindUser)
 		return
 	}
 
 	audio, err := as.GetByToken(req.Token)
 	if err != nil {
-		service.ProcessServerError(w, "Cannot find audio")
+		service.ProcessServerError(w, service.ErrFindUserAudio)
 		return
 	}
 	status := request.AudioStatus{
@@ -119,74 +130,76 @@ func (d *DecodeService) GetOne(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if audio.Error {
-		status.Status = "error"
+		status.Status = statusError
 	} else if audio.FinishedAt.Unix() <= 0 {
-		status.Status = "processing"
+		status.Status = statusProcess
 	} else {
-		status.Status = "done"
+		status.Status = statusDone
 	}
 
 	service.ProcessOk(w, status)
 }
 
+// Load returns audio by its token
 func (d *DecodeService) Load(w http.ResponseWriter, r *http.Request) {
 	var req request.UserNameAudioToken
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		service.ProcessBadFormat(w, "Request json in wrong format")
+		service.ProcessBadFormat(w, service.ErrWrongFormat)
 		return
 	}
 
 	db, err := d.adb.Get(req.Username)
 	if err != nil {
-		service.ProcessServerError(w, "Cannot get user")
+		service.ProcessServerError(w, service.ErrFindUser)
 		return
 	}
 
 	as, err := storage.NewAudioPostgres(db)
 	if err != nil {
-		service.ProcessServerError(w, "Cannot get user")
+		service.ProcessServerError(w, service.ErrFindUser)
 		return
 	}
 
 	audio, err := as.GetByToken(req.Token)
 	if err != nil {
-		service.ProcessServerError(w, "Cannot find audio")
+		service.ProcessServerError(w, service.ErrFindUserAudio)
 		return
 	}
 
 	f, err := os.OpenFile(getLocation(req.Username, audio.Name), os.O_RDONLY, 0666)
 	if err != nil {
-		service.ProcessServerError(w, "Cannot find audio")
+		service.ProcessServerError(w, service.ErrFindUserAudio)
 	}
 	defer f.Close()
 
 	io.Copy(w, f)
 }
 
+// Encode input audio
 func (d *DecodeService) Encode(w http.ResponseWriter, r *http.Request) {
 	var req request.UserAudio
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		service.ProcessBadFormat(w, "Request json in wrong format")
+		service.ProcessBadFormat(w, service.ErrWrongFormat)
 		return
 	}
 
 	db, err := d.adb.Get(req.Username)
 	if err != nil {
-		service.ProcessServerError(w, "Cannot get user")
+		service.ProcessServerError(w, service.ErrFindUser)
 		return
 	}
 
 	_, err = storage.NewAudioPostgres(db)
 	if err != nil {
-		service.ProcessServerError(w, "Cannot get user")
+		service.ProcessServerError(w, service.ErrFindUser)
 		return
 	}
 
 	as, err := storage.NewAudioPostgres(db)
 	if err != nil {
-		service.ProcessServerError(w, "Cannot get user")
+		service.ProcessServerError(w, service.ErrFindUser)
 		return
 	}
 
@@ -202,9 +215,9 @@ func (d *DecodeService) Encode(w http.ResponseWriter, r *http.Request) {
 	}
 	as.Save(audio)
 
-	dir, _ := os.Getwd()
+	path, _ := filepath.Abs(getBaseDir(req.Username))
 	go func(a storage.Audio, lAudio *model.Audio, path string) {
-		rCh, eCh, _ := startFfmpegEncrypt(req.AudioInit.URL, lAudio.Token+".crypt", req.AudioInit.Key, req.AudioInit.KID, path)
+		rCh, eCh, _ := startFfmpegEncrypt(req.AudioInit.URL, lAudio.Token+encryptExtension, req.AudioInit.Key, req.AudioInit.KID, path)
 		select {
 		case res := <-rCh:
 			if res.StatusCode != 0 {
@@ -212,41 +225,42 @@ func (d *DecodeService) Encode(w http.ResponseWriter, r *http.Request) {
 				as.Save(lAudio)
 				return
 			}
-			lAudio.Name = lAudio.Token + ".crypt"
+			lAudio.Name = lAudio.Token + encryptExtension
 			lAudio.FinishedAt = time.Now()
 			as.Save(lAudio)
 		case <-eCh:
 			lAudio.Error = true
 			as.Save(lAudio)
 		}
-	}(as, audio, path.Join(dir, "files", req.Username))
+	}(as, audio, path)
 
-	service.ProcessOk(w, request.AudioToken{audio.Token})
+	service.ProcessOk(w, request.AudioToken{Token: audio.Token})
 }
 
+// Decode input audio
 func (d *DecodeService) Decode(w http.ResponseWriter, r *http.Request) {
 	var req request.UserAudio
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		service.ProcessBadFormat(w, "Request json in wrong format")
+		service.ProcessBadFormat(w, service.ErrWrongFormat)
 		return
 	}
 
 	db, err := d.adb.Get(req.Username)
 	if err != nil {
-		service.ProcessServerError(w, "Cannot get user")
+		service.ProcessServerError(w, service.ErrFindUser)
 		return
 	}
 
 	_, err = storage.NewAudioPostgres(db)
 	if err != nil {
-		service.ProcessServerError(w, "Cannot get user")
+		service.ProcessServerError(w, service.ErrFindUser)
 		return
 	}
 
 	as, err := storage.NewAudioPostgres(db)
 	if err != nil {
-		service.ProcessServerError(w, "Cannot get user")
+		service.ProcessServerError(w, service.ErrFindUser)
 		return
 	}
 
@@ -262,32 +276,25 @@ func (d *DecodeService) Decode(w http.ResponseWriter, r *http.Request) {
 	}
 	as.Save(audio)
 
-	dir, _ := os.Getwd()
+	path, _ := filepath.Abs(getBaseDir(req.Username))
 	go func(a storage.Audio, lAudio *model.Audio, path string) {
-		rCh, eCh, _ := startFfmpegDecrypt(req.AudioInit.URL, lAudio.Token+".mp3", req.AudioInit.Key, path)
+		rCh, eCh, _ := startFfmpegDecrypt(req.AudioInit.URL, lAudio.Token+audioExtension, req.AudioInit.Key, path)
 		select {
 		case res := <-rCh:
 			if res.StatusCode != 0 {
+				time.Sleep(4 * time.Second)
 				lAudio.Error = true
 				as.Save(lAudio)
 				return
 			}
-			lAudio.Name = lAudio.Token + ".mp3"
+			lAudio.Name = lAudio.Token + audioExtension
 			lAudio.FinishedAt = time.Now()
 			as.Save(lAudio)
 		case <-eCh:
 			lAudio.Error = true
 			as.Save(lAudio)
 		}
-	}(as, audio, path.Join(dir, "files", req.Username))
-	// data, _ := ioutil.ReadAll(output)
-	// fmt.Println(string(data))
+	}(as, audio, path)
 
-	// res, _, output = startFfmpegDecrypt("output.crypt", "origin.mp3", "2BB80D537B1DA3E38BD30361AA855686")
-
-	// fmt.Println(<-res)
-	// data, _ = ioutil.ReadAll(output)
-	// fmt.Println(string(data))
-
-	service.ProcessOk(w, request.AudioToken{audio.Token})
+	service.ProcessOk(w, request.AudioToken{Token: audio.Token})
 }

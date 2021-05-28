@@ -39,7 +39,7 @@ func startService() *DecodeService {
 		MasterData:     swolf.MasterFieldResolver("username", "database"),
 	})
 
-	db, _ := sql.Open("postgres", fmt.Sprintf(connection, "master"))
+	db, _ := sql.Open("postgres", fmt.Sprintf(connection, viper.GetString("decoder.database.master")))
 
 	gormDB, _ := gorm.Open(postgres.New(postgres.Config{
 		Conn: db,
@@ -54,5 +54,9 @@ func startService() *DecodeService {
 }
 
 func getLocation(username, file string) string {
-	return path.Join("files", username, file)
+	return path.Join(getBaseDir(username), file)
+}
+
+func getBaseDir(username string) string {
+	return path.Join(viper.GetString("storage.directory"), username)
 }

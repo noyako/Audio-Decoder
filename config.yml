@@ -15,6 +15,29 @@ decoder:
     user: "postgres"
     password: "admin"
     port: "5432"
+    master: "master"
   service:
     url: "localhost"
     port: "8082"
+
+storage:
+  directory: "files"
+
+endpoints:
+  user:
+    all: "/code/all"
+    one: "/code/get"
+    load: "/code/download"
+    encrypt: "/code/encode"
+    decrypt: "/code/decode"
+    login: "/login"
+    register: "/register"
+    refresh: "/refresh"
+    new: "/new"
+  decoder:
+    all: "/all"
+    one: "/get"
+    load: "/download"
+    encrypt: "/encode"
+    decrypt: "/decode"
+    new: "/new"

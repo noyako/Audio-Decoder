@@ -2,6 +2,7 @@ package model
 
 import "time"
 
+// Audio represents encrypted/decrypted audio
 type Audio struct {
 	ID         uint `gorm:"primaryKey"`
 	Name       string
@@ -13,6 +14,7 @@ type Audio struct {
 	Error      bool
 }
 
+// Crypto represents encryption/decryption parameters
 type Crypto struct {
 	Key                 string
 	EncryptionType      string

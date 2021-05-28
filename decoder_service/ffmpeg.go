@@ -24,7 +24,6 @@ func startFfmpegEncrypt(url, filename, key, kid, path string) (<-chan container.
 	}
 	io.Copy(os.Stdout, reader)
 
-	// currPath, _ := os.Getwd()
 	resp, err := cli.ContainerCreate(
 		ctx,
 		&container.Config{
@@ -78,7 +77,6 @@ func startFfmpegDecrypt(url, filename, key, path string) (<-chan container.Conta
 	}
 	io.Copy(os.Stdout, reader)
 
-	// currPath, _ := os.Getwd()
 	resp, err := cli.ContainerCreate(
 		ctx,
 		&container.Config{

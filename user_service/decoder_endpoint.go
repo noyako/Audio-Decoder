@@ -9,33 +9,41 @@ import (
 
 	"github.com/noyako/Audio-Decoder/request"
 	"github.com/noyako/Audio-Decoder/service"
+	"github.com/spf13/viper"
 )
 
+const (
+	generalError = "Error"
+	okResponse   = "200 OK"
+)
+
+// GetAll returns all user audios
 func (u *UserService) GetAll(w http.ResponseWriter, r *http.Request) {
 	var token request.UserToken
 	err := json.NewDecoder(r.Body).Decode(&token)
 
 	if err != nil {
-		service.ProcessBadFormat(w, "Request json in wrong format")
+		service.ProcessBadFormat(w, service.ErrWrongFormat)
 		return
 	}
 
 	user, err := u.db.GetByToken(token.Token)
 	if err != nil {
-		service.ProcessServerError(w, "User not exists")
+		service.ProcessServerError(w, service.ErrFindUser)
 	} else {
-		jsonData, _ := json.Marshal(request.UserName{user.Username})
-		req, err := http.NewRequest("GET", "http://localhost:8082/all", bytes.NewBuffer(jsonData))
+		jsonData, _ := json.Marshal(request.UserName{Username: user.Username})
+		s := decoder(viper.GetString("endpoints.decoder.all"))
+		req, err := http.NewRequest("GET", s, bytes.NewBuffer(jsonData))
 		req.Header.Set("content-type", "application/json")
 		resp, err := http.DefaultClient.Do(req)
 
 		if err != nil {
-			service.ProcessServerError(w, "Error")
+			service.ProcessServerError(w, generalError)
 			return
 		}
 		defer resp.Body.Close()
-		if resp.Status != "200 OK" {
-			service.ProcessServerError(w, "Error")
+		if resp.Status != okResponse {
+			service.ProcessServerError(w, generalError)
 			return
 		}
 
@@ -44,33 +52,32 @@ func (u *UserService) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetOne returns information about selected audio
 func (u *UserService) GetOne(w http.ResponseWriter, r *http.Request) {
 	var token request.UserTokenAudioToken
 	err := json.NewDecoder(r.Body).Decode(&token)
 
 	if err != nil {
-		service.ProcessBadFormat(w, "Request json in wrong format")
+		service.ProcessBadFormat(w, service.ErrWrongFormat)
 		return
 	}
 
 	user, err := u.db.GetByToken(token.Token)
 	if err != nil {
-		service.ProcessServerError(w, "User not exists")
+		service.ProcessServerError(w, service.ErrFindUser)
 	} else {
-		jsonData, _ := json.Marshal(request.UserNameAudioToken{user.Username, token.Audio})
-		// resp, err := http.Post("http://localhost:8082/get", "application/json",
-		// 	bytes.NewBuffer(jsonData))
-		req, err := http.NewRequest("GET", "http://localhost:8082/get", bytes.NewBuffer(jsonData))
+		jsonData, _ := json.Marshal(request.UserNameAudioToken{Username: user.Username, Token: token.Audio})
+		req, err := http.NewRequest("GET", decoder(viper.GetString("endpoints.decoder.one")), bytes.NewBuffer(jsonData))
 		req.Header.Set("content-type", "application/json")
 		resp, err := http.DefaultClient.Do(req)
 
 		if err != nil {
-			service.ProcessServerError(w, "Error")
+			service.ProcessServerError(w, generalError)
 			return
 		}
 		defer resp.Body.Close()
-		if resp.Status != "200 OK" {
-			service.ProcessServerError(w, "Error")
+		if resp.Status != okResponse {
+			service.ProcessServerError(w, generalError)
 			return
 		}
 
@@ -79,33 +86,32 @@ func (u *UserService) GetOne(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Load dowloads audio
 func (u *UserService) Load(w http.ResponseWriter, r *http.Request) {
 	var token request.UserTokenAudioToken
 	err := json.NewDecoder(r.Body).Decode(&token)
 
 	if err != nil {
-		service.ProcessBadFormat(w, "Request json in wrong format")
+		service.ProcessBadFormat(w, service.ErrWrongFormat)
 		return
 	}
 
 	user, err := u.db.GetByToken(token.Token)
 	if err != nil {
-		service.ProcessServerError(w, "User not exists")
+		service.ProcessServerError(w, service.ErrFindUser)
 	} else {
-		jsonData, _ := json.Marshal(request.UserNameAudioToken{user.Username, token.Audio})
-		// resp, err := http.Post("http://localhost:8082/download", "application/json",
-		// 	bytes.NewBuffer(jsonData))
-		req, err := http.NewRequest("GET", "http://localhost:8082/download", bytes.NewBuffer(jsonData))
+		jsonData, _ := json.Marshal(request.UserNameAudioToken{Username: user.Username, Token: token.Audio})
+		req, err := http.NewRequest("GET", decoder(viper.GetString("endpoints.decoder.load")), bytes.NewBuffer(jsonData))
 		req.Header.Set("content-type", "application/json")
 		resp, err := http.DefaultClient.Do(req)
 
 		if err != nil {
-			service.ProcessServerError(w, "Error")
+			service.ProcessServerError(w, generalError)
 			return
 		}
 		defer resp.Body.Close()
-		if resp.Status != "200 OK" {
-			service.ProcessServerError(w, "Error")
+		if resp.Status != okResponse {
+			service.ProcessServerError(w, generalError)
 			return
 		}
 
@@ -114,43 +120,44 @@ func (u *UserService) Load(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Encode encrypts input audio
 func (u *UserService) Encode(w http.ResponseWriter, r *http.Request) {
 	var token request.UserTokenAudio
 	err := json.NewDecoder(r.Body).Decode(&token)
 
 	if err != nil {
-		service.ProcessBadFormat(w, "Request json in wrong format")
+		service.ProcessBadFormat(w, service.ErrWrongFormat)
 		return
 	}
 
 	if token.AudioInit.URL == "" {
-		service.ProcessBadFormat(w, "Audio url is empty")
+		service.ProcessBadFormat(w, service.ErrAudioURLEmpty)
 		return
 	}
 	if token.AudioInit.Key == "" {
-		service.ProcessBadFormat(w, "Encryption key is empty")
+		service.ProcessBadFormat(w, service.ErrEncryptionKeyEmpty)
 		return
 	}
 	if token.AudioInit.KID == "" {
-		service.ProcessBadFormat(w, "Encryption key ID is empty")
+		service.ProcessBadFormat(w, service.ErrEncryptionKeyIDEmpty)
 		return
 	}
 
 	user, err := u.db.GetByToken(token.Token)
 	if err != nil {
-		service.ProcessServerError(w, "User not exists")
+		service.ProcessServerError(w, service.ErrFindUser)
 	} else {
-		jsonData, _ := json.Marshal(request.UserAudio{user.Username, token.AudioInit})
-		resp, err := http.Post("http://localhost:8082/encode", "application/json",
+		jsonData, _ := json.Marshal(request.UserAudio{Username: user.Username, AudioInit: token.AudioInit})
+		resp, err := http.Post(decoder(viper.GetString("endpoints.decoder.encrypt")), "application/json",
 			bytes.NewBuffer(jsonData))
 
 		if err != nil {
-			service.ProcessServerError(w, "Error")
+			service.ProcessServerError(w, generalError)
 			return
 		}
 		defer resp.Body.Close()
-		if resp.Status != "200 OK" {
-			service.ProcessServerError(w, "Error")
+		if resp.Status != okResponse {
+			service.ProcessServerError(w, generalError)
 			return
 		}
 
@@ -159,43 +166,48 @@ func (u *UserService) Encode(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Decode decrypts audio
 func (u *UserService) Decode(w http.ResponseWriter, r *http.Request) {
 	var token request.UserTokenAudio
 	err := json.NewDecoder(r.Body).Decode(&token)
 
 	if err != nil {
-		service.ProcessBadFormat(w, "Request json in wrong format")
+		service.ProcessBadFormat(w, service.ErrWrongFormat)
 		return
 	}
 
 	if token.AudioInit.URL == "" {
-		service.ProcessBadFormat(w, "Audio url is empty")
+		service.ProcessBadFormat(w, service.ErrAudioURLEmpty)
 		return
 	}
 	if token.AudioInit.Key == "" {
-		service.ProcessBadFormat(w, "Encryption key is empty")
+		service.ProcessBadFormat(w, service.ErrEncryptionKeyEmpty)
 		return
 	}
 
 	user, err := u.db.GetByToken(token.Token)
 	if err != nil {
-		service.ProcessServerError(w, "User not exists")
+		service.ProcessServerError(w, service.ErrFindUser)
 	} else {
-		jsonData, _ := json.Marshal(request.UserAudio{user.Username, token.AudioInit})
-		resp, err := http.Post("http://localhost:8082/decode", "application/json",
+		jsonData, _ := json.Marshal(request.UserAudio{Username: user.Username, AudioInit: token.AudioInit})
+		resp, err := http.Post(decoder(viper.GetString("endpoints.decoder.decrypt")), "application/json",
 			bytes.NewBuffer(jsonData))
 
 		if err != nil {
-			service.ProcessServerError(w, "Error")
+			service.ProcessServerError(w, generalError)
 			return
 		}
 		defer resp.Body.Close()
-		if resp.Status != "200 OK" {
-			service.ProcessServerError(w, "Error")
+		if resp.Status != okResponse {
+			service.ProcessServerError(w, generalError)
 			return
 		}
 
 		data, _ := ioutil.ReadAll(resp.Body)
 		service.ProcessOkString(w, data)
 	}
+}
+
+func decoder(endpoint string) string {
+	return "http://" + viper.GetString("decoder.service.url") + ":" + viper.GetString("decoder.service.port") + endpoint
 }
