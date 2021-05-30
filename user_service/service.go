@@ -24,6 +24,7 @@ func (u *UserService) process() {
 	mux.HandleFunc(viper.GetString("endpoints.user.all"), u.GetAll).Methods("GET")
 	mux.HandleFunc(viper.GetString("endpoints.user.one"), u.GetOne).Methods("GET")
 	mux.HandleFunc(viper.GetString("endpoints.user.load"), u.Load).Methods("GET")
+	mux.HandleFunc(viper.GetString("endpoints.user.delete"), u.Remove).Methods("POST")
 
 	mux.HandleFunc(viper.GetString("endpoints.user.encrypt"), u.Encode).Methods("POST")
 	mux.HandleFunc(viper.GetString("endpoints.user.decrypt"), u.Decode).Methods("POST")

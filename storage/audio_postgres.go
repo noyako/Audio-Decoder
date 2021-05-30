@@ -51,6 +51,12 @@ func (a *AudioPostgres) Save(audio *model.Audio) error {
 	return result.Error
 }
 
+// Remove audio
+func (a *AudioPostgres) Remove(audio *model.Audio) error {
+	result := a.db.Delete(audio)
+	return result.Error
+}
+
 // Migrate database tables
 func (a *AudioPostgres) Migrate() {
 	a.db.AutoMigrate(&model.Audio{})

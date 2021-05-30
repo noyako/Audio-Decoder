@@ -22,6 +22,7 @@ func (d *DecodeService) process() {
 	mux.HandleFunc(viper.GetString("endpoints.decoder.all"), d.GetAll).Methods("GET")
 	mux.HandleFunc(viper.GetString("endpoints.decoder.one"), d.GetOne).Methods("GET")
 	mux.HandleFunc(viper.GetString("endpoints.decoder.load"), d.Load).Methods("GET")
+	mux.HandleFunc(viper.GetString("endpoints.decoder.delete"), d.Remove).Methods("POST")
 
 	mux.HandleFunc(viper.GetString("endpoints.decoder.encrypt"), d.Encode).Methods("POST")
 	mux.HandleFunc(viper.GetString("endpoints.decoder.decrypt"), d.Decode).Methods("POST")

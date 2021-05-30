@@ -219,6 +219,42 @@ func (u *UserService) Decode(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Remove user audio
+func (u *UserService) Remove(w http.ResponseWriter, r *http.Request) {
+	var token request.UserTokenAudioToken
+	err := json.NewDecoder(r.Body).Decode(&token)
+
+	if err != nil {
+		service.ProcessBadFormat(w, service.ErrWrongFormat)
+		return
+	}
+
+	user, err := u.db.GetByToken(token.Token)
+	if err != nil {
+		service.ProcessServerError(w, service.ErrFindUser)
+	} else {
+		jsonData, _ := json.Marshal(request.UserNameAudioToken{Username: user.Username, Token: token.Audio})
+		req, err := http.NewRequest("POST", decoder(viper.GetString("endpoints.decoder.delete")), bytes.NewBuffer(jsonData))
+		req.Header.Set("content-type", "application/json")
+		resp, err := http.DefaultClient.Do(req)
+
+		if err != nil {
+			log.Println(err)
+			service.ProcessServerError(w, generalError)
+			return
+		}
+		defer resp.Body.Close()
+		if resp.Status != okResponse {
+			log.Println(err)
+			service.ProcessServerError(w, generalError)
+			return
+		}
+
+		data, _ := ioutil.ReadAll(resp.Body)
+		service.ProcessOk(w, data)
+	}
+}
+
 func decoder(endpoint string) string {
 	return "http://" + viper.GetString("decoder.service.url") + ":" + viper.GetString("decoder.service.port") + endpoint
 }

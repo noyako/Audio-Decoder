@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"time"
 
@@ -300,4 +302,36 @@ func (d *DecodeService) Decode(w http.ResponseWriter, r *http.Request) {
 	}(as, audio, path)
 
 	service.ProcessOk(w, request.AudioToken{Token: audio.Token})
+}
+
+// Remove file from server
+func (d *DecodeService) Remove(w http.ResponseWriter, r *http.Request) {
+	var req request.UserNameAudioToken
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		service.ProcessBadFormat(w, service.ErrWrongFormat)
+		return
+	}
+
+	db, err := d.adb.Get(req.Username)
+	if err != nil {
+		service.ProcessServerError(w, service.ErrFindUser)
+		return
+	}
+
+	as, err := storage.NewAudioPostgres(db)
+	if err != nil {
+		service.ProcessServerError(w, service.ErrFindUser)
+		return
+	}
+
+	audio, err := as.GetByToken(req.Token)
+	if err != nil {
+		service.ProcessServerError(w, service.ErrFindUserAudio)
+		return
+	}
+
+	err = os.Remove(path.Join(getBaseDir(req.Username), audio.Name))
+	log.Println(err)
+	as.Remove(audio)
 }

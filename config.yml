@@ -38,6 +38,7 @@ endpoints:
     register: "/register"
     refresh: "/refresh"
     new: "/new"
+    delete: "/code/remove"
   decoder:
     all: "/all"
     one: "/get"
@@ -45,3 +46,4 @@ endpoints:
     encrypt: "/encode"
     decrypt: "/decode"
     new: "/new"
+    delete: "/remove"

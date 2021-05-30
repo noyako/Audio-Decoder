@@ -25,6 +25,8 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /home/aoyako/tfiles:/files:z
+    user:
+      "${UID}:${GID}"
     build:
       context: .
       dockerfile: decoder_service/Dockerfile
